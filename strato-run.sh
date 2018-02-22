@@ -69,43 +69,46 @@ then
     exit 2
 fi
 
-if grep -q "${registry}" ~/.docker/config.json
+if ! grep -q "${registry}" ~/.docker/config.json
 then
-    export NODE_HOST=${NODE_HOST:-localhost}
-    export ssl=${ssl:-false}
-    if [ "$ssl" = true ] ; then export http_protocol=https; else export http_protocol=http; fi
-    export sslCertFileType=${sslCertFileType:-crt}
-    export NODE_NAME=${NODE_NAME:-$NODE_HOST}
-    export BLOC_URL=${http_protocol}://$NODE_HOST/bloc/v2.2
-    export BLOC_DOC_URL=${http_protocol}://$NODE_HOST/docs/?url=/bloc/v2.2/swagger.json
-    export STRATO_URL=${http_protocol}://$NODE_HOST/strato-api/eth/v1.2
-    export STRATO_DOC_URL=${http_protocol}://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json
-    export CIRRUS_URL=${http_protocol}://$NODE_HOST/cirrus/search
-    export APEX_URL=${http_protocol}://$NODE_HOST/apex-api
-    export authBasic=${authBasic:-true}
-    export uiPassword=${uiPassword:-}
-    export STRATO_GS_MODE=${mode}
-    export SINGLE_NODE=true
-
-    if [ "$mode" != "1" ] ; then curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;fi
-    if [ "$stable" = true ]
-    then
-      if [ ! -f docker-compose.release.yml ]
-      then
-        echo "Getting stable release docker-compose.release.yml from latest release tag: https://github.com/blockapps/strato-getting-started/releases/latest"
-        curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
-      else
-        echo "docker-compose.release.yml exists - using it for current --stable run"
-      fi
-      docker-compose -f docker-compose.release.yml -p strato up -d
-    else
-      curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
-      docker-compose -f docker-compose.latest.yml pull && docker-compose -f docker-compose.latest.yml -p strato up -d
-    fi
-else
     echo "Please login to BlockApps Public Registry first:
 1) Register for access to STRATO Developer Edition trial here: http://developers.blockapps.net/trial
 2) Follow the instructions from the registration email to login to BlockApps Public Registry;
 3) Run this script again"
     exit 3
+fi
+
+export NODE_HOST=${NODE_HOST:-localhost}
+export ssl=${ssl:-false}
+if [ "$ssl" = true ] ; then export http_protocol=https; else export http_protocol=http; fi
+export sslCertFileType=${sslCertFileType:-crt}
+export NODE_NAME=${NODE_NAME:-$NODE_HOST}
+export BLOC_URL=${http_protocol}://$NODE_HOST/bloc/v2.2
+export BLOC_DOC_URL=${http_protocol}://$NODE_HOST/docs/?url=/bloc/v2.2/swagger.json
+export STRATO_URL=${http_protocol}://$NODE_HOST/strato-api/eth/v1.2
+export STRATO_DOC_URL=${http_protocol}://$NODE_HOST/docs/?url=/strato-api/eth/v1.2/swagger.json
+export CIRRUS_URL=${http_protocol}://$NODE_HOST/cirrus/search
+export APEX_URL=${http_protocol}://$NODE_HOST/apex-api
+export authBasic=${authBasic:-true}
+export uiPassword=${uiPassword:-}
+export STRATO_GS_MODE=${mode}
+export SINGLE_NODE=true
+
+if [ "$mode" != "1" ] ; then
+  curl http://api.mixpanel.com/track/?data=ewogICAgImV2ZW50IjogInN0cmF0b19nc19pbml0IiwKICAgICJwcm9wZXJ0aWVzIjogewogICAgICAgICJ0b2tlbiI6ICJkYWYxNzFlOTAzMGFiYjNlMzAyZGY5ZDc4YjZiMWFhMCIKICAgIH0KfQ==&ip=1 ;
+fi
+
+if [ "$stable" = true ]
+then
+  if [ ! -f docker-compose.release.yml ]
+  then
+    echo "Getting stable release docker-compose.release.yml from latest release tag: https://github.com/blockapps/strato-getting-started/releases/latest"
+    curl -s -L https://github.com/blockapps/strato-getting-started/releases/latest | egrep -o '/blockapps/strato-getting-started/releases/download/build-[0-9]*/docker-compose.release.yml' | wget --base=http://github.com/ -i - -O docker-compose.release.yml
+  else
+    echo "docker-compose.release.yml exists - using it for current --stable run"
+ fi
+  docker-compose -f docker-compose.release.yml -p strato up -d
+else
+  curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
+  docker-compose -f docker-compose.latest.yml pull && docker-compose -f docker-compose.latest.yml -p strato up -d
 fi
