@@ -11,14 +11,14 @@ registry="registry-aws.blockapps.net:5000"
 
 function wipe {
     echo "Stopping STRATO containers and wiping out volumes"
-    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
-    docker-compose -f docker-compose.latest.yml -p strato down -v 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down -v
+    docker-compose -f docker-compose.latest.yml -p strato kill
+    docker-compose -f docker-compose.latest.yml -p strato down -v
 }
 
 function stop {
     echo "Stopping STRATO containers"
-    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato kill
-    docker-compose -f docker-compose.latest.yml -p strato down 2> /dev/null || docker-compose -f docker-compose.release.yml -p strato down
+    docker-compose -f docker-compose.latest.yml -p strato kill 2> /dev/null
+    docker-compose -f docker-compose.latest.yml -p strato down 2> /dev/null
 }
 
 mode=${STRATO_GS_MODE:="0"}
@@ -109,6 +109,14 @@ then
  fi
   docker-compose -f docker-compose.release.yml -p strato up -d
 else
-  curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
-  docker-compose -f docker-compose.latest.yml pull && docker-compose -f docker-compose.latest.yml -p strato up -d
+  # curl -L https://github.com/blockapps/strato-getting-started/releases/download/build-latest/docker-compose.latest.yml -O
+  # docker-compose -f docker-compose.latest.yml pull
+  echo "pull: $?"
+  docker-compose -f docker-compose.latest.yml -p strato up -d
+  echo "up: $?"
+  until curl localhost
+  do
+    echo "Waiting for SMD to come up"
+    sleep 1
+  done
 fi
