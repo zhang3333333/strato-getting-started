@@ -33,6 +33,7 @@ ${Yellow}Optional flags:${NC}
 --wipe    - stop and remove STRATO containers and wipe out volumes;
 --compose - fetch the latest stable docker-compose.yml;
 --pull    - pull images used in docker-compose.yml;
+--keygen  - generate a collection of *unencrypted* private keys for PBFT;
 
 ${Yellow}Environment variables:${NC}
 NODE_HOST       - (default: localhost) the hostname or IP of the machine (used for APIs and Dashoboard);
@@ -120,6 +121,10 @@ while [ ${#} -gt 0 ]; do
     ;;
   --pull|-pull)
     pullImages
+    exit 0
+    ;;
+  --keygen|-keygen)
+    docker run --entrypoint=keygen ${STRATO_IMAGE:-registry-aws.blockapps.net:5000/blockapps/strato:4.0.0} --count=$2
     exit 0
     ;;
   *)
