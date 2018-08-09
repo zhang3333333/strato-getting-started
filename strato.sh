@@ -200,12 +200,18 @@ then
   echo "SINGLE_MODE: $SINGLE_NODE"
 else
   # Multi-node config
-  export miningAlgorithm="SHA"
+  export PBFT=${tmpblockstanbul:-false}
+  if [ ${PBFT} = true ]; then
+    export miningAlgorithm="Instant"
+  else
+    export miningAlgorithm="SHA"
+  fi
   export lazyBlocks=false
   export noMinPeers=true # Legacy 0.3.5 support
   export numMinPeers=${numMinPeers:-5}
   echo "" && echo "*** Multi-node Config ***"
   echo "miningAlgorithm: $miningAlgorithm"
+  echo "pbft: $PBFT"
   echo "lazyBlocks: $lazyBlocks"
   echo "noMinPeers(legacy for v0.3.5-): $noMinPeers"
   echo "numMinPeers: $numMinPeers"
