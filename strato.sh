@@ -127,6 +127,9 @@ while [ ${#} -gt 0 ]; do
     docker run --entrypoint=keygen ${STRATO_IMAGE:-registry-aws.blockapps.net:5000/blockapps/strato:4.0.0} --count=$2
     exit 0
     ;;
+  --pbft|-pbft|--blockstanbul|-blockstanbul|--istanbul|-istanbul)
+    PBFT=true
+    ;;
   *)
     echo "Unknown flag ${1} provided, please check --help"
     exit 7
@@ -191,6 +194,7 @@ echo "SMD_MODE: $SMD_MODE"
 echo "EXT_STORAGE_S3_BUCKET: ${EXT_STORAGE_S3_BUCKET:-not set}"
 echo "EXT_STORAGE_S3_ACCESS_KEY_ID: $(if [ -z ${EXT_STORAGE_S3_ACCESS_KEY_ID} ]; then echo "not set"; else echo "is set"; fi)"
 echo "EXT_STORAGE_S3_SECRET_ACCESS_KEY: $(if [ -z ${EXT_STORAGE_S3_SECRET_ACCESS_KEY} ]; then echo "not set"; else echo "is set"; fi)"
+echo "PBFT: ${PBFT:-false}"
 
 if [ ${single} = true ]
 then
@@ -200,9 +204,14 @@ then
   echo "SINGLE_MODE: $SINGLE_NODE"
 else
   # Multi-node config
-  export PBFT=${tmpblockstanbul:-false}
-  if [ ${PBFT} = true ]; then
+  if [ ${PBFT:-false} = true ]; then
     export miningAlgorithm="Instant"
+    export blockstanbul=true
+    if [ ! -f validators.json ]; then
+      echo "PBFT/blockstanbul enabled, but no validator.json found. Exiting"
+      exit 187
+    fi
+    export validators=$(<validators.json)
   else
     export miningAlgorithm="SHA"
   fi
@@ -211,7 +220,6 @@ else
   export numMinPeers=${numMinPeers:-5}
   echo "" && echo "*** Multi-node Config ***"
   echo "miningAlgorithm: $miningAlgorithm"
-  echo "pbft: $PBFT"
   echo "lazyBlocks: $lazyBlocks"
   echo "noMinPeers(legacy for v0.3.5-): $noMinPeers"
   echo "numMinPeers: $numMinPeers"
